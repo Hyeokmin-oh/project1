@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<robot name="variable_width_robot">
+
+  <material name="blue"> <color rgba="0 0 0.8 1"/> </material>
+  <material name="grey"> <color rgba="0.5 0.5 0.5 1"/> </material>
+  <material name="black"> <color rgba="0 0 0 1"/> </material> 
+
+
+  <!-- 몸체 제작 -->
+  <link name="base_link">
+    <visual>
+      <geometry> <box size="0.4 0.1 0.1"/> </geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <geometry> <box size="0.4 0.1 0.1"/> </geometry>
+    </collision>
+  </link>
+
+  <link name="left_body">
+    <visual>
+      <geometry> <box size="0.4 0.1 0.1"/> </geometry>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <geometry> <box size="0.4 0.1 0.1"/> </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
+    </inertial>
+  </link>
+
+  <!-- 몸체 slide joint-->
+  <joint name="width_joint" type="prismatic">
+    <parent link="base_link"/>
+    <child link="left_body"/>
+    <origin xyz="0 0.1 0"/>
+    <axis xyz="0 1 0"/> <limit effort="10.0" lower="0.0" upper="0.5" velocity="0.5"/>
+  </joint>
+
+
+  <!-- 몸체 바퀴 4개 -->
+  <link name="wheel_lf_back">
+  <visual>
+    <origin rpy="1.5707 0 0" xyz="0 0 0"/>
+    <geometry> <cylinder length="0.05" radius="0.1"/> </geometry>
+    <material name="black"/>
+  </visual>
+  <collision>
+    <origin rpy="1.5707 0 0" xyz="0 0 0"/>
+    <geometry> <cylinder length="0.05" radius="0.1"/> </geometry>
+  </collision>
+  <inertial>
+    <mass value="0.5"/>
+    <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+  </inertial>
+  </link>
+
+  <link name="wheel_lf_front">
+  <visual>
+    <origin rpy="1.5707 0 0" xyz="0 0 0"/>
+    <geometry> <cylinder length="0.05" radius="0.1"/> </geometry>
+    <material name="black"/>
+  </visual>
+  <collision>
+    <origin rpy="1.5707 0 0" xyz="0 0 0"/>
+    <geometry> <cylinder length="0.05" radius="0.1"/> </geometry>
+  </collision>
+  <inertial>
+    <mass value="0.5"/>
+    <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+  </inertial>
+  </link>
+
+  <link name="wheel_rt_back">
+  <visual>
+    <origin rpy="1.5707 0 0" xyz="0 0 0"/>
+    <geometry> <cylinder length="0.05" radius="0.1"/> </geometry>
+    <material name="black"/>
+  </visual>
+  <collision>
+    <origin rpy="1.5707 0 0" xyz="0 0 0"/>
+    <geometry> <cylinder length="0.05" radius="0.1"/> </geometry>
+  </collision>
+  <inertial>
+    <mass value="0.5"/>
+    <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+  </inertial>
+  </link>
+
+  <link name="wheel_rt_front">
+  <visual>
+    <origin rpy="1.5707 0 0" xyz="0 0 0"/>
+    <geometry> <cylinder length="0.05" radius="0.1"/> </geometry>
+    <material name="black"/>
+  </visual>
+  <collision>
+    <origin rpy="1.5707 0 0" xyz="0 0 0"/>
+    <geometry> <cylinder length="0.05" radius="0.1"/> </geometry>
+  </collision>
+  <inertial>
+    <mass value="0.5"/>
+    <inertia ixx="0.001" ixy="0" ixz="0" iyy="0.001" iyz="0" izz="0.001"/>
+  </inertial>
+  </link>
+
+  <!--바퀴 4개 joint 설정-->
+  <joint name="joint_wheel_lf_back" type="continuous">
+    <parent link="left_body"/>
+    <child link="wheel_lf_back"/>
+    <origin xyz="0.15 0.07 -0.05"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <joint name="joint_wheel_lf_front" type="continuous">
+    <parent link="left_body"/>
+    <child link="wheel_lf_front"/>
+    <origin xyz="-0.15 0.07 -0.05"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <joint name="joint_wheel_rt_back" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_rt_back"/>
+    <origin xyz="0.15 -0.07 -0.05"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <joint name="joint_wheel_rt_front" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_rt_front"/>
+    <origin xyz="-0.15 -0.07 -0.05"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!--Front Indicator-->
+  <link name="front_indicator">
+    <visual>
+      <geometry> <box size="0.05 0.05 0.05"/> </geometry>
+      <material name="red"> <color rgba="1 0 0 1"/> </material>
+    </visual>
+  </link>
+
+  <joint name="joint_front_indicator" type="fixed">
+    <parent link="base_link"/>
+    <child link="front_indicator"/>
+    <origin xyz="0.2 0 0.05"/> 
+  </joint>
+
+</robot>
