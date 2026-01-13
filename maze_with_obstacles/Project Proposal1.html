@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로봇공학 프로젝트 제안서 - 고도화 버전</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #e67e22;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        header {
+            border-bottom: 3px solid var(--primary-color);
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 1.2rem;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            border-left: 6px solid var(--accent-color);
+            padding-left: 15px;
+            color: var(--primary-color);
+            margin-top: 45px;
+            font-size: 1.6rem;
+            background: linear-gradient(90deg, #fdf2e9 0%, transparent 100%);
+            padding-top: 5px;
+            padding-bottom: 5px;
+        }
+
+        .section-content {
+            padding-left: 20px;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 18px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .role-badge {
+            display: inline-block;
+            background: var(--primary-color);
+            color: white;
+            padding: 3px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .tech-stack {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .tech-item {
+            background: #edf2f7;
+            color: #2d3748;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 1px solid #cbd5e0;
+        }
+
+        .scenario-box {
+            background-color: #fffaf0;
+            border: 1px dashed var(--accent-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #888;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        strong { color: var(--primary-color); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>프로젝트 제안서</h1>
+        <p class="subtitle">가변 기구학 및 Dynamic APF를 이용한 비정형 환경 대응형 수송 로봇 시뮬레이션</p>
+    </header>
+
+    <section>
+        <h2>1. 프로젝트 개요</h2>
+        <div class="section-content">
+            <p>본 프로젝트는 <strong>가변형 메커니즘(Morphology Reconfiguration)</strong>과 <strong>인공 전위계(Artificial Potential Field)</strong> 알고리즘을 결합하여, 실시간으로 변화하는 동적 장애물 환경에서의 로봇 생존력과 운송 효율을 극대화하는 것을 목적으로 함. 실제 하드웨어의 제약 없이 PyBullet 물리 엔진 내에서 기계공학적 수식을 소프트웨어로 완벽히 구현하는 'System Integration' 역량 입증에 집중함.</p>
+        </div>
+    </section>
+
+    <section>
+        <h2>2. 핵심 기술 및 차별점</h2>
+        <div class="section-content">
+            <ul>
+                <li><strong>실시간 가변 기구학(Variable Kinematics):</strong> Prismatic Joint를 활용하여 로봇의 폭(Width)을 실시간 조절. 측면 척력(Repulsive Force)의 세기에 반응하여 스스로 형태를 변형함으로써 협소 구간 통과 및 충돌 회피.</li>
+                <li><strong>Dynamic Artificial Potential Field (APF):</strong> 고정 장애물에 대한 반발력뿐만 아니라, 움직이는 객체의 속도 벡터를 연산에 포함하여 미래 위치에 선제적인 전위 필드(Potential Field)를 형성.</li>
+                <li><strong>Physics-based Simulation:</strong> PyBullet을 사용하여 관성 행렬(Inertia Matrix), 모터 토크, 마찰 계수 등 실제 물리 법칙을 적용한 동역학 시뮬레이션 환경 구축.</li>
+            </ul>
+        </div>
+    </section>
+
+    <section>
+        <h2>3. 예상 시나리오: "Sisyphus Escape"</h2>
+        <div class="section-content">
+            <div class="scenario-box">
+                <p><strong>시나리오 상세:</strong> 경사면 위에서 랜덤한 크기와 속도로 굴러 내려오는 동적 장애물(바위/구체)을 로봇이 하단에서 감지하여 목적지까지 도달하는 미션.</p>
+                <ul>
+                    <li>로봇 상단에 장착된 <strong>가상 카메라(RGB-D)</strong>를 통해 장애물의 크기와 거리 인지.</li>
+                    <li>장애물 사이의 틈이 좁을 경우, 로봇의 폭을 축소하여 사이를 통과하거나 척력이 강한 방향을 피해 급격한 회피 기동 수행.</li>
+                    <li>단순 정지가 아닌, 힘의 합력 벡터(Resultant Force Vector)에 따른 최적의 회피 경로 실시간 생성.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>4. 상세 역할 분담 (R&D 및 코딩)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>구분</th>
+                    <th>담당자 A (시스템 및 제어)</th>
+                    <th>담당자 B (인지 및 예측)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>핵심 역량</strong></td>
+                    <td><strong>Dynamic Modeling & Control</strong></td>
+                    <td><strong>Computer Vision & Estimation</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>주요 업무</strong></td>
+                    <td>
+                        <span class="role-badge">Python / PyBullet</span><br>
+                        - 로봇 URDF 모델링 및 Prismatic Joint 설계<br>
+                        - <strong>인공 전위계(APF) 수식 알고리즘화</strong> 및 합력 연산<br>
+                        - 가변 기구학에 따른 제어 게인(PID) 최적화<br>
+                        - 로봇 주행 동역학 제어 스크립트 작성
+                    </td>
+                    <td>
+                        <span class="role-badge">Python / OpenCV</span><br>
+                        - <strong>비전 데이터 가공:</strong> 장애물 Contour 추출 및 거리 계산<br>
+                        - <strong>칼만 필터(Kalman Filter)</strong> 기반 장애물 궤적 예측<br>
+                        - 가상 LiDAR 데이터(Ray-casting) 처리 및 융합<br>
+                        - 실시간 시뮬레이션 데이터 시각화(Plotting)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>5. 기술 스택</h2>
+        <div class="section-content">
+            <div class="tech-stack">
+                <span class="tech-item">Python 3.10</span>
+                <span class="tech-item">PyBullet (Physics)</span>
+                <span class="tech-item">NumPy (Vector Math)</span>
+                <span class="tech-item">OpenCV (Vision)</span>
+                <span class="tech-item">Matplotlib (Analysis)</span>
+                <span class="tech-item">Git/GitHub</span>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h2>6. 기대 효과</h2>
+        <div class="section-content">
+            <p>본 프로젝트는 기계공학 전공 지식(동역학, 기구학, 제어공학)을 실제 파이썬 코드로 이식하는 과정을 통해 <strong>로봇 소프트웨어 엔지니어</strong>로서의 핵심 역량을 증명함. 특히 고정된 하드웨어의 한계를 소프트웨어적 유연성(가변 기구 제어)으로 극복하는 시나리오는 실제 물류 및 재난 로봇 산업의 최신 트렌드와 일치하여 높은 포트폴리오 가치를 가짐.</p>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2026 Gold Award Project Team. All Rights Reserved.<br>
+        Developed for Robotics Portfolio Project.</p>
+    </footer>
+</div>
+
+</body>
+</html>
