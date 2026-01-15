@@ -1,15 +1,13 @@
 import pybullet as p
 import pybullet_data
 import time
+import random
 
 # --- 1. 시뮬레이션 환경 설정 ---
 p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0, 0, -9.8)
 p.loadURDF("plane.urdf")
-
-# 로봇 로드
-robot_id = p.loadURDF("AMR_Robot.urdf", [0, 0, 0.2])
 
 # --- 2. 수동 조인트 매핑 (URDF 작성 순서 기준) ---
 # 터미널에 출력되는 순서를 확인하고 숫자가 다르면 아래만 수정하세요.
@@ -38,6 +36,53 @@ print("="*30)
 # 인덱스 검증을 위한 출력 (실행 시 터미널 확인용)
 for i in range(p.getNumJoints(robot_id)):
     print(f"Index {i}: {p.getJointInfo(robot_id, i)[1].decode('utf-8')}")
+
+# 미로 만들기 함수
+def create_maze(width, height):
+    # 1. 미로 초기화 (모두 벽으로 채움: 1은 벽, 0은 통로)
+    maze = [[1] * width for _ in range(height)]
+    
+    def walk(x, y):
+        maze[y][x] = 0  # 현재 위치를 통로로 만듦
+        
+        # 사방 탐색 (상, 하, 좌, 우) 순서를 섞음
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        random.shuffle(directions)
+        
+        for dx, dy in directions:
+            nx, ny = x + dx*2, y + dy*2  # 두 칸씩 이동 (벽 사이 공간 확보)
+            if 0 <= nx < width and 0 <= ny < height and maze[ny][nx] == 1:
+                maze[y + dy][x + dx] = 0 # 사이 벽을 허묾
+                walk(nx, ny)
+
+    walk(1, 1) # (1, 1) 지점에서 시작
+    return maze
+
+def build_maze_in_pybullet(maze, wall_height=0.5):
+    wall_shape = p.createCollisionShape(p.GEOM_BOX, halfExtents=[0.5, 0.5, wall_height/2])
+    wall_visual = p.createVisualShape(p.GEOM_BOX, halfExtents=[0.5, 0.5, wall_height/2], rgbaColor=[0.7, 0.7, 0.7, 1])
+    
+    for y, row in enumerate(maze):
+        for x, cell in enumerate(row):
+            if cell == 1:
+                # 벽 배치 (격자 크기 1m 기준)
+                p.createMultiBody(baseMass=0,
+                                  baseCollisionShapeIndex=wall_shape,
+                                  baseVisualShapeIndex=wall_visual,
+                                  basePosition=[x, y, wall_height/2])
+
+# 미로 로드
+MAZE_W = 15
+MAZE_H =15
+my_maze = create_maze(MAZE_W, MAZE_H)
+build_maze_in_pybullet(my_maze)
+
+# 로봇 로드
+robot_id = p.loadURDF("AMR_Robot.urdf", [0, 0, 0.2])
+
+
+
+
 
 while True:
     p.stepSimulation()
