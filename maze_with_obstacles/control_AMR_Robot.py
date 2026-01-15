@@ -2,6 +2,7 @@ import pybullet as p
 import pybullet_data
 import time
 import random
+import math
 
 
 # --- 1. 시뮬레이션 환경 설정 ---
@@ -60,26 +61,45 @@ def create_maze(width, height):
                 walk(nx, ny)
 
     walk(1, 1) # (1, 1) 지점에서 시작
-    return maze
 
-def build_maze_in_pybullet(maze, wall_height=0.5):
+    goal_x, goal_y = width - 2, height - 2
+    maze[goal_y][goal_x] = 2
+    return maze, (goal_x, goal_y)
+
+def build_maze_in_pybullet(maze, goal_pos, wall_height=0.5):
+    # 벽 설정
     wall_shape = p.createCollisionShape(p.GEOM_BOX, halfExtents=[0.5, 0.5, wall_height/2])
     wall_visual = p.createVisualShape(p.GEOM_BOX, halfExtents=[0.5, 0.5, wall_height/2], rgbaColor=[0.7, 0.7, 0.7, 1])
     
+    # 골인 지점 설정 (충돌은 없고 색상만 있는 센서 구역 느낌)
+    goal_visual = p.createVisualShape(p.GEOM_CYLINDER, radius=0.4, length=0.01, rgbaColor=[1, 0, 0, 0.5])
+    
     for y, row in enumerate(maze):
         for x, cell in enumerate(row):
-            if cell == 1:
-                # 벽 배치 (격자 크기 1m 기준)
-                p.createMultiBody(baseMass=0,
-                                  baseCollisionShapeIndex=wall_shape,
-                                  baseVisualShapeIndex=wall_visual,
-                                  basePosition=[x, y, wall_height/2])
+            if cell == 1: # 벽
+                p.createMultiBody(baseMass=0, baseCollisionShapeIndex=wall_shape, 
+                                  baseVisualShapeIndex=wall_visual, basePosition=[x, y, wall_height/2])
+            elif cell == 2: # 골인 지점
+                p.createMultiBody(baseMass=0, baseVisualShapeIndex=goal_visual, basePosition=[x, y, 0.01])
+
+def create_obstacles(pos):
+    col_id = p.createCollisionShape(p.GEOM_SPHERE, radius=0.3)
+    vis_id = p.createVisualShape(p.GEOM_SPHERE, radius=0.3, rgbaColor=[0.4, 0.2, 0.1, 1])
+    # 처음에는 공중에 고정(mass=0)해두었다가 나중에 물리 적용
+    obs_id = p.createMultiBody(baseMass=0, 
+                               baseCollisionShapeIndex=col_id, 
+                               baseVisualShapeIndex=vis_id, 
+                               basePosition=[pos[0], pos[1], 3.0]) # 3m 높이
+    return obs_id
+
 
 # 미로 로드
-MAZE_W = 15
-MAZE_H =15
-my_maze = create_maze(MAZE_W, MAZE_H)
-build_maze_in_pybullet(my_maze)
+my_maze, goal_coords = create_maze(15, 15)
+build_maze_in_pybullet(my_maze, goal_coords)
+
+# 메인 루프에서 트리거 체크
+obs_id = create_obstacles([5, 5])
+triggered = False
 
 
 while True:
@@ -93,14 +113,19 @@ while True:
     # 1. 로봇의 current position & orientation load
     cubePos, cubeOrn = p.getBasePositionAndOrientation(robot_id)
 
+    # 1-1. 쿼터니언 오일러 변환
+    euler_angles = p.getEulerFromQuaternion(cubeOrn)
+    yaw_rad = euler_angles[2]
+    yaw_deg = yaw_rad * 180 / math.pi
+
     # 2. 카메라 설정
     p.resetDebugVisualizerCamera(
-        cameraDistance = 1.5,
-        cameraYaw = 0,
+        cameraDistance = 2,
+        cameraYaw = yaw_deg - 90,
         cameraPitch = -60,
         cameraTargetPosition = cubePos
     )
-    
+
     # --- 주행 제어 (위/아래: 전후진, 좌/우: 회전) ---
     if p.B3G_UP_ARROW in keys and keys[p.B3G_UP_ARROW] & p.KEY_IS_DOWN:
         linear = max_v
@@ -130,5 +155,19 @@ while True:
         current_width = max(0.0, current_width - 0.005)
 
     p.setJointMotorControl2(robot_id, WIDTH_JOINT, p.POSITION_CONTROL, targetPosition=current_width)
+
+    # --- 장애물 근처에 오면 낙하 시작
+    dist = ((cubePos[0] - 5)**2 + (cubePos[1] - 5)**2)**0.5
+    if dist < 2.0 and not triggered:
+        # 질량(Mass)을 부여하여 중력에 의해 떨어지게 만듦
+        p.changeDynamics(obs_id, -1, mass=5.0)
+        triggered = True
+
+    # --- 골인 체크 로직 ---
+    distance_to_goal = ((cubePos[0] - goal_coords[0])**2 + (cubePos[1] - goal_coords[1])**2)**0.5
+    if distance_to_goal < 0.2:
+        p.addUserDebugText("GOAL IN!", [goal_coords[0], goal_coords[1], 1], 
+                           textColorRGB=[1, 0, 0], textSize=2, lifeTime=1)
+        # 여기서 멈추거나 다음 미로로 넘어가게 할 수 있습니다.
 
     time.sleep(1./240.)
