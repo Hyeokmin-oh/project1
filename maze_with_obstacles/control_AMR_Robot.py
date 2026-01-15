@@ -3,11 +3,15 @@ import pybullet_data
 import time
 import random
 
+
 # --- 1. 시뮬레이션 환경 설정 ---
 p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0, 0, -9.8)
 p.loadURDF("plane.urdf")
+
+# 로봇 로드
+robot_id = p.loadURDF("AMR_Robot.urdf", [1, 1, 0.5])
 
 # --- 2. 수동 조인트 매핑 (URDF 작성 순서 기준) ---
 # 터미널에 출력되는 순서를 확인하고 숫자가 다르면 아래만 수정하세요.
@@ -77,12 +81,6 @@ MAZE_H =15
 my_maze = create_maze(MAZE_W, MAZE_H)
 build_maze_in_pybullet(my_maze)
 
-# 로봇 로드
-robot_id = p.loadURDF("AMR_Robot.urdf", [0, 0, 0.2])
-
-
-
-
 
 while True:
     p.stepSimulation()
@@ -90,6 +88,18 @@ while True:
     
     linear = 0
     angular = 0
+
+    # --- 로봇 추적 카메라 로직 ---
+    # 1. 로봇의 current position & orientation load
+    cubePos, cubeOrn = p.getBasePositionAndOrientation(robot_id)
+
+    # 2. 카메라 설정
+    p.resetDebugVisualizerCamera(
+        cameraDistance = 1.5,
+        cameraYaw = 0,
+        cameraPitch = -60,
+        cameraTargetPosition = cubePos
+    )
     
     # --- 주행 제어 (위/아래: 전후진, 좌/우: 회전) ---
     if p.B3G_UP_ARROW in keys and keys[p.B3G_UP_ARROW] & p.KEY_IS_DOWN:
