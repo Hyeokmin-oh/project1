@@ -31,6 +31,7 @@ except Exception as e:
 
 # --- 2. 시뮬레이션 환경 설정 ---
 p.connect(p.GUI)
+# 녹화 시작 부분(startStateLogging) 삭제됨
 p.configureDebugVisualizer(p.COV_ENABLE_RGB_BUFFER_PREVIEW, 1)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0, 0, -9.81)
@@ -94,32 +95,17 @@ leo_id = p.loadURDF(urdf_file_path, basePosition=[1, 1, 0.5])
 left_wheels, right_wheels = [2, 3], [5, 6]
 for j in (left_wheels + right_wheels): p.changeDynamics(leo_id, j, lateralFriction=1.0)
 
-# 색상 입히기 (선택 사항)
-# 색상 정의 (R, G, B, Alpha)
-ORANGE = [1.0, 0.4, 0.0, 1.0]
-DARK_GRAY = [0.2, 0.2, 0.2, 1.0]
-BLACK = [0.1, 0.1, 0.1, 1.0]
-YELLOW = [1.0, 1.0, 0.0, 1.0]
-GRAY = [0.5, 0.5, 0.5, 1.0]
-BLUE = [0.0, 0.0, 0.8, 1.0]
-
-# 1. 몸체 색상 변경 (base_link는 index -1)
+# 색상 입히기
+GRAY, BLACK, DARK_GRAY, YELLOW, BLUE = [0.5, 0.5, 0.5, 1.0], [0.1, 0.1, 0.1, 1.0], [0.2, 0.2, 0.2, 1.0], [1.0, 1.0, 0.0, 1.0], [0.0, 0.0, 0.8, 1.0]
 p.changeVisualShape(leo_id, -1, rgbaColor=GRAY)
-
-# 2. 링크별 이름 기반 색상 할당
 num_joints = p.getNumJoints(leo_id)
 for i in range(num_joints):
     joint_info = p.getJointInfo(leo_id, i)
     link_name = joint_info[12].decode('utf-8').lower()
-    
-    if "wheel" in link_name:
-        p.changeVisualShape(leo_id, i, rgbaColor=BLACK)
-    elif "rocker" in link_name or "bogie" in link_name:
-        p.changeVisualShape(leo_id, i, rgbaColor=DARK_GRAY)
-    elif "camera" in link_name or "lidar" in link_name:
-        p.changeVisualShape(leo_id, i, rgbaColor=YELLOW)
-    else:
-        p.changeVisualShape(leo_id, i, rgbaColor=BLUE)
+    if "wheel" in link_name: p.changeVisualShape(leo_id, i, rgbaColor=BLACK)
+    elif "rocker" in link_name or "bogie" in link_name: p.changeVisualShape(leo_id, i, rgbaColor=DARK_GRAY)
+    elif "camera" in link_name or "lidar" in link_name: p.changeVisualShape(leo_id, i, rgbaColor=YELLOW)
+    else: p.changeVisualShape(leo_id, i, rgbaColor=BLUE)
 
 # --- 5. 자율주행 메인 루프 ---
 start_time = time.time()
@@ -128,12 +114,10 @@ frame_count = 0
 p.setRealTimeSimulation(1)
 
 while path_idx < len(path_to_follow):
-    # 현재 위치 및 방향 파악
     pos, orn = p.getBasePositionAndOrientation(leo_id)
     target_node = path_to_follow[path_idx]
     target_pos = [target_node[0], target_node[1]]
 
-    # 목표 지점과의 거리 및 각도 계산
     dx, dy = target_pos[0] - pos[0], target_pos[1] - pos[1]
     dist = math.sqrt(dx**2 + dy**2)
     target_angle = math.atan2(dy, dx)
@@ -143,38 +127,43 @@ while path_idx < len(path_to_follow):
     while angle_diff > math.pi: angle_diff -= 2*math.pi
     while angle_diff < -math.pi: angle_diff += 2*math.pi
 
-    # 주행 로직: 각도 먼저 맞추고 전진
     if dist < 0.3:
         path_idx += 1
         continue
 
     linear_vel, angular_vel = 0, 0
-    if abs(angle_diff) > 0.2: # 회전 우선
+    if abs(angle_diff) > 0.2:
         angular_vel = 5.0 if angle_diff > 0 else -5.0
-    else: # 전진
-        linear_vel = 15.0
-        angular_vel = angle_diff * 5.0 # 미세 보정
+    else:
+        linear_vel = 20.0
+        angular_vel = angle_diff * 5.0
 
     l_speed, r_speed = linear_vel - angular_vel, linear_vel + angular_vel
     for j in left_wheels: p.setJointMotorControl2(leo_id, j, p.VELOCITY_CONTROL, targetVelocity=l_speed, force=30.0)
-    for j in right_wheels: p.setJointMotorControl2(leo_id, j, p.VELOCITY_CONTROL, targetVelocity=r_target if 'r_target' in locals() else r_speed, force=30.0)
+    for j in right_wheels: p.setJointMotorControl2(leo_id, j, p.VELOCITY_CONTROL, targetVelocity=r_speed, force=30.0)
 
     # [골인 체크 및 시간 출력 로직]
     dist_to_goal = math.sqrt((pos[0]-goal_coords[0])**2 + (pos[1]-goal_coords[1])**2)
+    if not 'goal_reached' in locals():
+        goal_reached = False
     
     if dist_to_goal < 0.4 and target_node == goal_coords:
-        end_time = time.time()  # 골인 시간 기록
-        elapsed_time = end_time - start_time  # 총 소요 시간 계산
-        
-        # 1. 시뮬레이션 화면에 결과 표시
-        result_text = f"FINISH! Time: {elapsed_time:.2f}s"
-        p.addUserDebugText(result_text, [pos[0], pos[1], 1.5], [0, 1, 0], 3)
-        
-        # 2. 터미널에 상세 결과 출력
-        print("-" * 30)
-        print(f"미션 완료! 총 소요 시간: {elapsed_time:.2f}초")
-        print("-" * 30)
-        break
+        if not goal_reached:
+            goal_reached = True
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            minutes, seconds = int(elapsed_time // 60), int(elapsed_time % 60)
+            time_str = f"Time : {minutes:02d}:{seconds:02d}"
+            
+            p.addUserDebugText("MISSION COMPLETE!", [pos[0], pos[1], 1.8], [0, 1, 0], 2, lifeTime=0)
+            p.addUserDebugText(time_str, [pos[0], pos[1], 1.5], [1, 1, 1], 2, lifeTime=0)
+            print("-" * 30 + f"\n미션 완료! 주행 시간: {time_str}\n" + "-" * 30)
+            # 녹화 종료(stopStateLogging) 부분 삭제됨
+
+    if goal_reached:
+        l_speed, r_speed = 0, 0
+        for j in left_wheels + right_wheels:
+            p.setJointMotorControl2(leo_id, j, p.VELOCITY_CONTROL, targetVelocity=0, force=30.0)
 
     # 카메라 추적 및 시야 업데이트
     p.resetDebugVisualizerCamera(cameraDistance=2.5, cameraYaw=yaw*180/math.pi-90, cameraPitch=-50, cameraTargetPosition=pos)
@@ -187,9 +176,5 @@ while path_idx < len(path_to_follow):
         fwd = [r_m[0], r_m[3], r_m[6]]
         v_m = p.computeViewMatrix(c_p, [c_p[0]+fwd[0], c_p[1]+fwd[1], c_p[2]+fwd[2]], [r_m[2], r_m[5], r_m[8]])
         p.getCameraImage(80, 60, viewMatrix=v_m, projectionMatrix=p.computeProjectionMatrixFOV(65, 1.0, 0.1, 100.0))
-
-    if dist < 0.4 and target_node == goal_coords:
-        p.addUserDebugText("MISSION COMPLETE!", [pos[0], pos[1], 1.5], [0,1,0], 2)
-        break
 
     time.sleep(1./1000.)
